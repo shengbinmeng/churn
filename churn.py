@@ -7,25 +7,28 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import confusion_matrix
 
+from datetime import datetime
+
 print("Importing data")
 churn_df = pd.read_csv('data/churn.csv')
 print(churn_df.head(6))
 
 print("Preparing features and labels")
 # Isolate target data
-churn_labels = churn_df['Churn?']
-y = np.where(churn_labels == 'True.', 1, 0)
+y = churn_df['churn_or_not']
 
 # We don't need these columns
-to_drop = ['State','Area Code','Phone','Churn?']
+to_drop = ['uid','churn_or_not']
 churn_features = churn_df.drop(to_drop, axis=1)
 
-# 'yes'/'no' has to be converted to boolean values
-# NumPy converts these from boolean to 1. and 0. later
-yes_no_cols = ["Int'l Plan","VMail Plan"]
-churn_features[yes_no_cols] = churn_features[yes_no_cols] == 'yes'
+def date_transform(register_date):
+    dt = datetime.strptime(register_date, "%m/%d/%y")
+    today = datetime(2018, 7, 17)
+    delta = today - dt
+    return str(delta.days)
+churn_features['register_date'] = churn_features['register_date'].apply(date_transform)
 
-X = churn_features.as_matrix().astype(np.float)
+X = churn_features.values.astype(np.float)
 
 # This is important
 scaler = StandardScaler()
@@ -64,13 +67,14 @@ print("K-nearest-neighbors")
 clf = KNeighborsClassifier()
 clf.fit(X_train, y_train)
 y_pred = clf.predict(X_test)
+print("Accuracy: %.3f" % accuracy(y_test, y_pred))
 
 matrix = confusion_matrix(y_test, y_pred)
 print(matrix)
 print("Precision: %.3f, Recall: %.3f" % (1.0 * matrix[1][1] / (matrix[0][1] + matrix[1][1]), 1.0 * matrix[1][1] / (matrix[1][0] + matrix[1][1])))
 
 
-print "Random forest"
+print("Random forest")
 clf = RandomForestClassifier(n_estimators=10)
 clf.fit(X_train, y_train)
 y_pred = clf.predict(X_test)
@@ -81,6 +85,7 @@ print(matrix)
 print("Precision: %.3f, Recall: %.3f" % (1.0 * matrix[1][1] / (matrix[0][1] + matrix[1][1]), 1.0 * matrix[1][1] / (matrix[1][0] + matrix[1][1])))
 
 # Write test data to file
-churn_test = churn_df.ix[test_index]
+churn_test = churn_features.ix[test_index]
+churn_test['churn_or_not'] = y_test
 churn_test['Predicted'] = y_pred
-churn_test.to_csv("./data/churn_test.csv")
+churn_test.to_csv("./data/churn_test.csv", index=False)
