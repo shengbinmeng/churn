@@ -39,8 +39,8 @@ print("Unique target labels: " + str(np.unique(y)))
 
 example_num = len(X)
 train_num = int(example_num * 2 / 3)
-train_index = range(0, train_num)
-test_index = range(train_num, example_num)
+train_index = list(range(0, train_num))
+test_index = list(range(train_num, example_num))
 print("Splitting train and test data set: %d, %d" % (len(train_index), len(test_index)))
 
 X_train, y_train = X[train_index], y[train_index]
@@ -60,7 +60,7 @@ print("Accuracy: %.3f" % accuracy(y_test, y_pred))
 
 matrix = confusion_matrix(y_test, y_pred)
 print(matrix)
-print "Precision: %.3f, Recall: %.3f" % (1.0 * matrix[1][1] / (matrix[0][1] + matrix[1][1]), 1.0 * matrix[1][1] / (matrix[1][0] + matrix[1][1]))
+print("Precision: %.3f, Recall: %.3f" % (1.0 * matrix[1][1] / (matrix[0][1] + matrix[1][1]), 1.0 * matrix[1][1] / (matrix[1][0] + matrix[1][1])))
 
 
 print("K-nearest-neighbors")
